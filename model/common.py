@@ -78,36 +78,34 @@ class ResidualBlock_noBN_t4(nn.Module):
         self.width = width
 
     def forward(self, x):
-        #res = self.body(x)
-        #print('----------------')
-        #print('this is in resblock x shape:'+str(x.shape))
+        # width=1.0 不修改 为正常resblock
         if self.width == 1.0:
             res = self.body[0](x)
-            #print('width = 1.0!')
-            #print('this is in resblock after conv1:'+str(res.shape))
         else:
-            #print('width = '+str(self.width))
+            # width=0.25/0.5/0.75，模块第一层卷积的weight仅保留out_channel的前width
             weight = torch.clone(self.body[0].weight)
-            weight[int((1-self.width)*self.nf):, :, :, :] = 0
-            #print('weight shape :'+str(weight.shape))
-            #print('sum:'+str(torch.sum(weight[:int((1-self.width)*self.nf), :, :, :])))
-            #print('sum0:'+str(torch.sum(weight[int((1-self.width)*self.nf):, :, :, :])))
-            bias = torch.clone(self.body[0].bias)
-            bias[int((1-self.width)*self.nf):] = 0
-            #print('sum:'+str(torch.sum(bias[:int((1-self.width)*self.nf)])))
-            #print('sum0:'+str(torch.sum(bias[int((1-self.width)*self.nf):])))
+            mask_w = torch.zeros(weight.size())
+            mask_w[:int(self.width*self.nf),:,:,:] = 1 # 仅保留前面的width*nf（nf为总channel数）
+            weight = weight.to(torch.device("cuda"))  
+            mask_w = mask_w.to(torch.device("cuda"))  
+            weight = torch.mul(weight,mask_w)
+            # weight[int((1-self.width)*self.nf):, :, :, :] = 0
+
+            bias = torch.clone(self.body[0].bias) # bias做相同处理，仅保留前面width
+            mask_b = torch.zeros(bias.size())
+            mask_b[:int(self.width*self.nf)] = 1
+            bias = bias.to(torch.device("cuda"))  
+            mask_b = mask_b.to(torch.device("cuda")) 
+            bias = torch.mul(bias,mask_b)
+            # bias[int((1-self.width)*self.nf):] = 0
+
             res = F.conv2d(x,weight,bias,stride = 1, padding = 1)
-            #print('this is in resblock after conv1:'+str(res.shape))
-            #y = F.conv2d(inputs, weight, bias, self.stride, self.padding, self.dilation, self.groups)
         
-        #res = self.body[0](x)
         tmp = F.relu(res)
-        res = self.body[1](tmp)
-        #print('this is in resblock after conv2:'+str(res.shape))
-        #print('----------------')
+        res = self.body[1](tmp) # 下面是正常的resblock，通过relu和第二层卷积，叠加跳跃连接，return
         tmp = res + x
-        #res += x
         return tmp
+
 class ResidualBlock_noBN_t4p(nn.Module):
     def __init__(
         self, conv, n_feats, kernel_size,
@@ -374,7 +372,6 @@ class ResidualBlock_noBN_0copy(nn.Module):
     def __init__(self, nf=64):
         super(ResidualBlock_noBN_0copy, self).__init__()
         self.conv1 = USConv2d(nf, nf, 3, 1, 1, bias=True, us=[True,True])
-        #self.conv2 = conv(n_feats, n_feats, kernel_size, bias=bias)
         self.conv2 = nn.Conv2d(nf, nf, 3, stride = 1, padding = 1)
         self.n_feats = nf
         # conv2直接nf-nf，不需要改变宽度，因此使用普通卷积
@@ -382,6 +379,9 @@ class ResidualBlock_noBN_0copy(nn.Module):
 
         # initialization
         arch_util.initialize_weights([self.conv1, self.conv2], 0.1)
+        print('here init 0copy')
+        print(self.conv1.weight)
+        print('sum:'+str(torch.sum(self.conv1.weight)))
 
     def set_width(self, width):
         self.conv1.set_width_mult(width)
@@ -472,6 +472,9 @@ class ResidualBlock_noBN_v2(nn.Module):
 
         # initialization
         arch_util.initialize_weights([self.conv1, self.conv2], 0.1)
+        print('here init v2')
+        print(self.conv1.weight)
+        print('sum:'+str(torch.sum(self.conv1.weight)))
     
     def set_width(self, width):
         self.conv1.width_mult = width

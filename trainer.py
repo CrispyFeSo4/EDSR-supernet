@@ -11,6 +11,13 @@ import torch
 from torch.autograd import Variable
 from tqdm import tqdm
 import random
+import numpy as np
+
+# 固定随机种子
+seed = 42
+torch.manual_seed(seed)
+random.seed(seed)
+np.random.seed(seed)
 
 class Trainer():
     def __init__(self, args, loader, my_model, my_loss, ckp):
@@ -51,10 +58,10 @@ class Trainer():
         '''
         outH, outW = round(scale*inH), round(scale2*inW)
         #outH, outW = int(scale*inH), int(scale2*inW)
-        #----------测试方便需要 训练时候记得删掉--------------
+        '''#----------测试方便需要 训练时候记得删掉--------------
         if scale in [1.4,2.3,2.8] or scale2 in [1.4,2.3,2.8]:
             outH, outW = int(scale*inH), int(scale2*inW)
-        #----------测试方便需要 训练时候记得删掉--------------
+        #----------测试方便需要 训练时候记得删掉--------------'''
 
         #### mask records which pixel is invalid, 1 valid or o invalid
         #### h_offset and w_offset caculate the offset to generate the input matrix

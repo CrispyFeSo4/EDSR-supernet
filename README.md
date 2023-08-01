@@ -3,24 +3,19 @@ Official implementation of **Meta-SR: A Magnification-Arbitrary Network for Supe
   
 [Paper](https://arxiv.org/pdf/1903.00875.pdf)
 
-Our code is built on [EDSR(PyTorch)](https://github.com/thstkdgus35/EDSR-PyTorch).
+This code is built on [EDSR(PyTorch)](https://github.com/thstkdgus35/EDSR-PyTorch).
 
 
 
-
-
-# Attention
-* The master branch has   fearful bug!!! we will  check the code as soon as possible（2020-12-31）
-* I find an error in my camera-ready, the PSNR of our Meta-RDN on scale 1.2 is 40.04 not 40.40.
 # Requirements
 
-* Pytorch 0.4.0
-* Python 3.5
+* Pytorch 1.1.0
+* Python 3.6
 * numpy
 * skimage
 * imageio
 * cv2  
-*note that if you use another version of pytorch (>0.4.0), you can rewrite the dataloader.py
+*note that the dataloader.py from the original Meta-SR(2019) has been rewrite to suit pytorch (>0.4.0).
 
 # Install and run demo
 1. download the code
