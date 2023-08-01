@@ -15,7 +15,7 @@ This code is built on [EDSR(PyTorch)](https://github.com/thstkdgus35/EDSR-PyTorc
 * skimage
 * imageio
 * cv2  
-*note that the dataloader.py from the original Meta-SR(2019) has been rewrite to suit pytorch (>0.4.0).
+*note that the dataloader.py from the original Meta-SR(2019) has been rewrite to suit pytorch (>0.4.0)
 
 # Citation
 ```
