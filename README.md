@@ -1,9 +1,9 @@
-# Meta-SR
+# EDSR-supernet
 Official implementation of **Meta-SR: A Magnification-Arbitrary Network for Super-Resolution(CVPR2019)(PyTorch)**
   
 [Paper](https://arxiv.org/pdf/1903.00875.pdf)
 
-This code is built on [EDSR(PyTorch)](https://github.com/thstkdgus35/EDSR-PyTorch).
+This code is built on [EDSR(PyTorch)](https://github.com/thstkdgus35/EDSR-PyTorch) and Meta-SR.
 
 # Notice when checking the code
 
