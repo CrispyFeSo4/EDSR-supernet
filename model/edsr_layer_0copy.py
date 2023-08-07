@@ -15,7 +15,7 @@ def make_model(args, parent=False):
 
 
 
-class Pos2Weight(nn.Module):
+class Pos2Weight(nn.Module): # 未作修改，可以不检查
     def __init__(self,inC, kernel_size=3, outC=3):
         super(Pos2Weight,self).__init__()
         self.inC = inC
@@ -31,7 +31,7 @@ class Pos2Weight(nn.Module):
         output = self.meta_block(x)
         return output
 
-class EDSR(nn.Module):
+class EDSR(nn.Module): # 只需要检查这个class的类定义、forward函数即可
     def __init__(self, args, conv=common.default_conv):
         super(EDSR, self).__init__()
 
@@ -59,14 +59,11 @@ class EDSR(nn.Module):
         # 塞进16个ResBlock，都是可变宽度卷积
 
         m_body.append(conv(n_feats, n_feats, kernel_size))
-        # body的尾部卷积 也恢复正常
-
 
         self.add_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std, 1)
 
         self.head = nn.Sequential(*m_head)
         self.body = nn.Sequential(*m_body)
-        #self.tail = nn.Sequential(*m_tail)
 
         ## position to weight
 
@@ -96,23 +93,17 @@ class EDSR(nn.Module):
         else:
             width = 1.0
         
-        
-        #print('-------------------now scale:'+str(self.scale)+' x '+str(self.scale2)+'     width = '+str(width))
-        #print('     width = '+str(width)+' start x shape:'+str(x.shape))
         x = self.head(x)
         res = x
 
-        #print('     width = '+str(width)+' after head res shape:'+str(res.shape))
         for i in range(self.args.n_resblocks):
             self.body[i].set_width(width)
             res = self.body[i](res)
-            #print(str(i+1)+' layer res shape:'+str(res.shape))
             
         res = self.body[-1](res)
         res += x
-        #print('     width = '+str(width)+' after body res shape:'+str(res.shape))
 
-        #print('---------------------------------')
+        # --------超网相关修改到此为止，下面的是另外的上采样操作，毕设时期修改的-------------------------
 
         local_weight = self.P2W(pos_mat.view(pos_mat.size(1),-1))   ###   (outH*outW, outC*inC*kernel_size*kernel_size)
         up_x = self.repeat_x(res)     ### the output is (N*r*r,inC,inH,inW)
@@ -133,8 +124,6 @@ class EDSR(nn.Module):
         out = self.add_mean(out)
         ###
         return out
-
-
 
 
     def set_scale(self, scale_idx):

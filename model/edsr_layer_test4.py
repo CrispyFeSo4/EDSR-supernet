@@ -13,8 +13,6 @@ def make_model(args, parent=False):
     else:
         return EDSR(args)
 
-
-
 class Pos2Weight(nn.Module):
     def __init__(self,inC, kernel_size=3, outC=3):
         super(Pos2Weight,self).__init__()
@@ -49,27 +47,22 @@ class EDSR(nn.Module):
         rgb_std = (1.0, 1.0, 1.0)
         self.sub_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std)
 
-        # 头部正常
         m_head = [conv(args.n_colors, n_feats, kernel_size)]
 
-        # define body module 
-        
-            
+        # define body module        
         m_body = []
         for _ in range(n_resblock):
             m_body.append(common.ResidualBlock_noBN_t4(
                 conv, n_feats, kernel_size, act=act, res_scale=args.res_scale))
-        # 塞进16个ResBlock，都是可变宽度卷积
+        # 塞进16个ResBlock
 
         m_body.append(conv(n_feats, n_feats, kernel_size))
-        # body的尾部卷积 也恢复正常
 
 
         self.add_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std, 1)
 
         self.head = nn.Sequential(*m_head)
         self.body = nn.Sequential(*m_body)
-        #self.tail = nn.Sequential(*m_tail)
 
         ## position to weight
 
@@ -99,23 +92,17 @@ class EDSR(nn.Module):
         else:
             width = 1.0
         
-        
-        #print('-------------------now scale:'+str(self.scale)+' x '+str(self.scale2)+'     width = '+str(width))
-        #print('     width = '+str(width)+' start x shape:'+str(x.shape))
         x = self.head(x)
         res = x
 
-        #print('     width = '+str(width)+' after head res shape:'+str(res.shape))
         for i in range(self.args.n_resblocks):
             self.body[i].set_width(width) # 这里其实没有可变宽度卷积了，但是要传宽度进去
             res = self.body[i](res)
-            #print(str(i+1)+' layer res shape:'+str(res.shape))
             
         res = self.body[-1](res)
         res += x
-        #print('     width = '+str(width)+' after body res shape:'+str(res.shape))
+ # --------超网相关修改到此为止，下面的是另外的上采样操作，毕设时期修改的-------------------------
 
-        #print('---------------------------------')
 
         local_weight = self.P2W(pos_mat.view(pos_mat.size(1),-1))   ###   (outH*outW, outC*inC*kernel_size*kernel_size)
         up_x = self.repeat_x(res)     ### the output is (N*r*r,inC,inH,inW)

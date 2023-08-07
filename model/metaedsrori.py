@@ -11,7 +11,6 @@ def make_model(args, parent=False):
         return EDSR(args)
 
 
-
 class Pos2Weight(nn.Module):
     def __init__(self,inC, kernel_size=3, outC=3):
         super(Pos2Weight,self).__init__()
@@ -33,7 +32,6 @@ class EDSR(nn.Module):
         super(EDSR, self).__init__()
 
         n_resblock = args.n_resblocks
-        # n_resblock = 4   # ！！！！！！！！！！！！！！！！！！！！
         n_feats = args.n_feats
         kernel_size = 3
         scale = args.scale[0]
@@ -57,8 +55,6 @@ class EDSR(nn.Module):
         ]
         m_body.append(conv(n_feats, n_feats, kernel_size))
 
-        #m_tail = [conv(n_feats, n_feats, kernel_size)]
-
         self.add_mean = common.MeanShift(args.rgb_range, rgb_mean, rgb_std, 1)
 
         self.head = nn.Sequential(*m_head)
@@ -81,7 +77,7 @@ class EDSR(nn.Module):
         return x.contiguous().view(-1, C, H, W)
 
     def forward(self, x, pos_mat):
-        #print('this is metaedsrori')
+
         x = self.sub_mean(x)
         x = self.head(x)
 

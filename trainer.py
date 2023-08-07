@@ -21,7 +21,6 @@ np.random.seed(seed)
 
 class Trainer():
     def __init__(self, args, loader, my_model, my_loss, ckp):
-        # 一个训练器需要一个data loader，一个model，一个loss ckp是checkpoint
         self.args = args
         self.scale = args.scale # scale是一个列表list
         self.scale2 = args.scale2
@@ -181,18 +180,11 @@ class Trainer():
                 filenames.append(filename) # 抽取bs数量的样本
 
             idx_scale = self.select_element_with_probability()
-            #print('test:scale------------'+str(self.scale[idx_scale])+'x'+str(self.scale2[idx_scale]))
-
-            # Loss_all = 0
 
             datatime = 0
             modeltime = 0
-            #for idx_scale in idxscales:
 
             lr,hr,filename = self.loader_train.dataset.get_img_by_filename(filenames,idx_scale)
-            # print('------------------scale:'+str(idx_scale))
-            # print(lr.shape)
-            # print(hr.shape)
             lr, hr = self.prepare(lr, hr)
             timer_data.hold()
             datatime += timer_data.release()
@@ -216,11 +208,8 @@ class Trainer():
             loss = self.loss(re_sr, hr) # 计算loss
 
             if loss.item() < self.args.skip_threshold * self.error_last:
-                # Loss_all += loss
                 pass
-                #print('loss:'+str(loss.item()))
-                #print('Loss_all:'+str(Loss_all.item()))
-                #print('-------------end')
+
             else:
                 print('Skip this batch {}! (Loss: {})'.format(
                     batch + 1, loss.item()
@@ -370,5 +359,5 @@ class Trainer():
             epoch = self.scheduler.last_epoch + 1
             return epoch >= self.args.epochs # 如果false 说明还没结束训练 回去就继续调用train
             # 如果大于了 说明已经够训练轮次
-            # 所以train函数会被调用很多次！
+            # 所以train函数会被调用很多次
 
